@@ -1,9 +1,26 @@
 {
+  "name": "psychic-engine",
+  "version": "1.0.0",
+  "description": "Psychic Engine",
+  "main": "app.ts",
+  "type": "module",
+  "scripts": {
+    "build": "esbuild src/app.ts --bundle --platform=node --format=esm --outdir=dist --external:express",
+    "start": "node dist/app.js",
+    "dev": "concurrently \"esbuild src/app.ts --bundle --platform=node --format=esm --outdir=dist --watch --external:express\" \"nodemon dist/app.js --delay 500ms\"",
+    "dev:build": "esbuild src/app.ts --bundle --platform=node --format=esm --outdir=dist --watch --external:express"
+  },
   "dependencies": {
     "express": "^5.1.0",
-    "tsc": "^2.0.4"
+    "tsc": "^2.0.4",
+    "typescript": "^5.9.2",
+    "zod": "^4.1.11"
   },
   "devDependencies": {
-    "@types/node": "^24.5.2"
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.5.2",
+    "concurrently": "^9.2.1",
+    "esbuild": "^0.25.10",
+    "nodemon": "^3.1.10"
   }
 }
