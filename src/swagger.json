@@ -1,0 +1,624 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Tasks API",
+    "description": "API para gestión de tareas con autenticación JWT. Soporta versiones v1 y v2.",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Tasks API Support"
+    }
+  },
+  "host": "localhost:3000",
+  "basePath": "/api",
+  "schemes": ["http"],
+  "consumes": ["application/json"],
+  "produces": ["application/json"],
+  "securityDefinitions": {
+    "Bearer": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header",
+      "description": "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\""
+    }
+  },
+  "definitions": {
+    "AuthRequest": {
+      "type": "object",
+      "required": ["username", "password"],
+      "properties": {
+        "username": {
+          "type": "string",
+          "example": "admin"
+        },
+        "password": {
+          "type": "string",
+          "example": "password123"
+        }
+      }
+    },
+    "AuthResponse": {
+      "type": "object",
+      "properties": {
+        "token": {
+          "type": "string",
+          "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        }
+      }
+    },
+    "Task": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "example": 1
+        },
+        "title": {
+          "type": "string",
+          "example": "Completar documentación de Swagger"
+        },
+        "description": {
+          "type": "string",
+          "example": "Agregar ejemplos de request y response a todos los endpoints"
+        },
+        "completed": {
+          "type": "boolean",
+          "example": false
+        }
+      }
+    },
+    "CreateTaskRequest": {
+      "type": "object",
+      "required": ["title"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "example": "Nueva tarea importante"
+        },
+        "description": {
+          "type": "string",
+          "example": "Descripción detallada de la tarea"
+        },
+        "completed": {
+          "type": "boolean",
+          "default": false,
+          "example": false
+        }
+      }
+    },
+    "UpdateTaskRequest": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "example": "Título actualizado"
+        },
+        "description": {
+          "type": "string",
+          "example": "Descripción actualizada"
+        },
+        "completed": {
+          "type": "boolean",
+          "example": true
+        }
+      }
+    },
+    "TasksResponse": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Task"
+      }
+    },
+    "ErrorResponse": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string",
+          "example": "Task not found"
+        }
+      }
+    },
+    "ValidationError": {
+      "type": "object",
+      "properties": {
+        "issues": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "message": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/v1/auth/login": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Autenticación de usuario",
+        "description": "Autentica un usuario y devuelve un token JWT válido por 1 hora",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "credentials",
+            "description": "Credenciales de usuario",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/AuthRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Autenticación exitosa",
+            "schema": {
+              "$ref": "#/definitions/AuthResponse"
+            }
+          },
+          "400": {
+            "description": "Datos de entrada inválidos",
+            "schema": {
+              "$ref": "#/definitions/ValidationError"
+            }
+          },
+          "403": {
+            "description": "Credenciales inválidas",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/v2/auth/login": {
+      "post": {
+        "tags": ["Authentication V2"],
+        "summary": "Autenticación de usuario (V2)",
+        "description": "Autentica un usuario y devuelve un token JWT válido por 1 hora (versión 2)",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "credentials",
+            "description": "Credenciales de usuario",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/AuthRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Autenticación exitosa",
+            "schema": {
+              "$ref": "#/definitions/AuthResponse"
+            }
+          },
+          "400": {
+            "description": "Datos de entrada inválidos",
+            "schema": {
+              "$ref": "#/definitions/ValidationError"
+            }
+          },
+          "403": {
+            "description": "Credenciales inválidas",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/v1/tasks": {
+      "get": {
+        "tags": ["Tasks V1"],
+        "summary": "Obtener todas las tareas",
+        "description": "Retorna una lista de todas las tareas del usuario autenticado",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de tareas obtenida exitosamente",
+            "schema": {
+              "$ref": "#/definitions/TasksResponse"
+            }
+          },
+          "401": {
+            "description": "Token no proporcionado o inválido",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Tasks V1"],
+        "summary": "Crear una nueva tarea",
+        "description": "Crea una nueva tarea con los datos proporcionados",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "task",
+            "description": "Datos de la nueva tarea",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CreateTaskRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Tarea creada exitosamente",
+            "schema": {
+              "$ref": "#/definitions/Task"
+            }
+          },
+          "400": {
+            "description": "Datos de entrada inválidos",
+            "schema": {
+              "$ref": "#/definitions/ValidationError"
+            }
+          },
+          "401": {
+            "description": "Token no proporcionado o inválido",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/v1/tasks/{id}": {
+      "get": {
+        "tags": ["Tasks V1"],
+        "summary": "Obtener tarea por ID",
+        "description": "Retorna una tarea específica basada en su ID",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "description": "ID de la tarea",
+            "required": true,
+            "type": "integer",
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tarea encontrada",
+            "schema": {
+              "$ref": "#/definitions/Task"
+            }
+          },
+          "401": {
+            "description": "Token no proporcionado o inválido",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "Tarea no encontrada",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["Tasks V1"],
+        "summary": "Actualizar tarea",
+        "description": "Actualiza una tarea existente con los datos proporcionados",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "description": "ID de la tarea",
+            "required": true,
+            "type": "integer",
+            "example": 1
+          },
+          {
+            "in": "body",
+            "name": "task",
+            "description": "Datos actualizados de la tarea",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UpdateTaskRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tarea actualizada exitosamente",
+            "schema": {
+              "$ref": "#/definitions/Task"
+            }
+          },
+          "400": {
+            "description": "Datos de entrada inválidos",
+            "schema": {
+              "$ref": "#/definitions/ValidationError"
+            }
+          },
+          "401": {
+            "description": "Token no proporcionado o inválido",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "Tarea no encontrada",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Tasks V1"],
+        "summary": "Eliminar tarea",
+        "description": "Elimina una tarea existente",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "description": "ID de la tarea",
+            "required": true,
+            "type": "integer",
+            "example": 1
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Tarea eliminada exitosamente"
+          },
+          "401": {
+            "description": "Token no proporcionado o inválido",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "Tarea no encontrada",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/v2/tasks": {
+      "get": {
+        "tags": ["Tasks V2"],
+        "summary": "Obtener todas las tareas (V2)",
+        "description": "Retorna una lista de todas las tareas del usuario autenticado (versión 2)",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de tareas obtenida exitosamente",
+            "schema": {
+              "$ref": "#/definitions/TasksResponse"
+            }
+          },
+          "401": {
+            "description": "Token no proporcionado o inválido",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Tasks V2"],
+        "summary": "Crear una nueva tarea (V2)",
+        "description": "Crea una nueva tarea con los datos proporcionados (versión 2)",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "task",
+            "description": "Datos de la nueva tarea",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CreateTaskRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Tarea creada exitosamente",
+            "schema": {
+              "$ref": "#/definitions/Task"
+            }
+          },
+          "400": {
+            "description": "Datos de entrada inválidos",
+            "schema": {
+              "$ref": "#/definitions/ValidationError"
+            }
+          },
+          "401": {
+            "description": "Token no proporcionado o inválido",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/v2/tasks/{id}": {
+      "get": {
+        "tags": ["Tasks V2"],
+        "summary": "Obtener tarea por ID (V2)",
+        "description": "Retorna una tarea específica basada en su ID (versión 2)",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "description": "ID de la tarea",
+            "required": true,
+            "type": "integer",
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tarea encontrada",
+            "schema": {
+              "$ref": "#/definitions/Task"
+            }
+          },
+          "401": {
+            "description": "Token no proporcionado o inválido",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "Tarea no encontrada",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["Tasks V2"],
+        "summary": "Actualizar tarea (V2)",
+        "description": "Actualiza una tarea existente con los datos proporcionados (versión 2)",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "description": "ID de la tarea",
+            "required": true,
+            "type": "integer",
+            "example": 1
+          },
+          {
+            "in": "body",
+            "name": "task",
+            "description": "Datos actualizados de la tarea",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UpdateTaskRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tarea actualizada exitosamente",
+            "schema": {
+              "$ref": "#/definitions/Task"
+            }
+          },
+          "400": {
+            "description": "Datos de entrada inválidos",
+            "schema": {
+              "$ref": "#/definitions/ValidationError"
+            }
+          },
+          "401": {
+            "description": "Token no proporcionado o inválido",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "Tarea no encontrada",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Tasks V2"],
+        "summary": "Eliminar tarea (V2)",
+        "description": "Elimina una tarea existente (versión 2)",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "description": "ID de la tarea",
+            "required": true,
+            "type": "integer",
+            "example": 1
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Tarea eliminada exitosamente"
+          },
+          "401": {
+            "description": "Token no proporcionado o inválido",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "Tarea no encontrada",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      }
+    }
+  }
+}
