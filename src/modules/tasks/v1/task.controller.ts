@@ -1,10 +1,10 @@
-import { Task } from "./task.types"
+import { Task } from "../task.types"
 import { Request, Response } from "express";
-import { createTaskSchema, updateTaskSchema } from "./task.schema"
-import { TaskService } from "./task.service";
+import { createTaskSchema, updateTaskSchema } from "../task.schema"
+import { TaskService } from "../task.service";
 
 
-export class TaskController {
+export class TaskControllerV1 {
 
     constructor(private readonly service: TaskService) {}
 
